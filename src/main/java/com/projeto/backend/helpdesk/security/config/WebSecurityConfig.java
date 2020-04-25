@@ -1,14 +1,17 @@
 package com.projeto.backend.helpdesk.security.config;
 
 import com.projeto.backend.helpdesk.security.jwt.JwtAuthenticationTokenFilter;
-import com.projeto.backend.helpdesk.security.jwt.JwtAutheticationEntryPoint;
+import com.projeto.backend.helpdesk.security.jwt.JwtAuthenticationEntryPoint;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,15 +20,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /* Classe para habilitar a configuraca do spring security na aplicacao */
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter{ 
+@Configuration
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Autowired  /* injecao de dependencia da classe UserDetailsService da biblio do spring */
-    private UserDetailsService userDetailsService;
+	@Autowired
+	private JwtAuthenticationEntryPoint unauthorizedHandler;
 
-    @Autowired  /* injecao de depedencia da classe responsavel por tratar um erro de autenticacao */
-    private JwtAutheticationEntryPoint unauthorizedHandler;
+	@Autowired
+	private UserDetailsService userDetailsService;
 
-    @Autowired
+	@Autowired
 	public void configureAuthentication(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
 		authenticationManagerBuilder.userDetailsService(this.userDetailsService).passwordEncoder(passwordEncoder());
 	}
@@ -35,12 +41,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 		return new BCryptPasswordEncoder();
 	}
 
-    @Bean
+	@Bean
 	public JwtAuthenticationTokenFilter authenticationTokenFilterBean() throws Exception {
 		return new JwtAuthenticationTokenFilter();
-    }
-    
-    @Bean
+	}
+	
+	@Bean
 	public AuthenticationManager customAuthenticationManager() throws Exception {
 	  return authenticationManager();
 	}
@@ -65,5 +71,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
         httpSecurity.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
         httpSecurity.headers().cacheControl();
     }
-
 }
